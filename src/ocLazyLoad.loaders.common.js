@@ -2,7 +2,7 @@
     'use strict';
 
     angular.module('oc.lazyLoad').config($provide => {
-        $provide.decorator('$ocLazyLoad', function($delegate, $q, $window, $interval) {
+        $provide.decorator('$ocLazyLoad', function ($delegate, $q, $window, $interval) {
             var uaCssChecked = false,
                 useCssLoadPatch = false,
                 anchor = $window.document.getElementsByTagName('head')[0] || $window.document.getElementsByTagName('body')[0];
@@ -21,57 +21,59 @@
                     filesCache = $delegate._getFilesCache(),
                     cacheBuster = function cacheBuster(url) {
                         var dc = new Date().getTime();
-                        if(url.indexOf('?') >= 0) {
-                            if(url.substring(0, url.length - 1) === '&') {
-                                return `${ url }_dc=${ dc }`;
+                        if (url.indexOf('?') >= 0) {
+                            if (url.substring(0, url.length - 1) === '&') {
+                                return `${url}_dc=${dc}`;
                             }
-                            return `${ url }&_dc=${ dc }`;
+                            return `${url}&_dc=${dc}`;
                         } else {
-                            return `${ url }?_dc=${ dc }`;
+                            return `${url}?_dc=${dc}`;
                         }
                     };
 
                 // Store the promise early so the file load can be detected by other parallel lazy loads
                 // (ie: multiple routes on one page) a 'true' value isn't sufficient
                 // as it causes false positive load results.
-                if(angular.isUndefined(filesCache.get(path))) {
+                if (angular.isUndefined(filesCache.get(path))) {
                     filesCache.put(path, deferred.promise);
                 }
 
                 // Switch in case more content types are added later
-                switch(type) {
+                switch (type) {
                     case 'css':
                         el = $window.document.createElement('link');
                         el.type = 'text/css';
                         el.rel = 'stylesheet';
+                        el.crossOrigin = 'anonymous';
                         el.href = params.cache === false ? cacheBuster(path) : path;
                         break;
                     case 'js':
                         el = $window.document.createElement('script');
                         el.src = params.cache === false ? cacheBuster(path) : path;
+                        el.crossOrigin = 'anonymous';
                         break;
                     default:
                         filesCache.remove(path);
-                        deferred.reject(new Error(`Requested type "${ type }" is not known. Could not inject "${ path }"`));
+                        deferred.reject(new Error(`Requested type "${type}" is not known. Could not inject "${path}"`));
                         break;
                 }
-                el.onload = el['onreadystatechange'] = function(e) {
-                    if((el['readyState'] && !/^c|loade/.test(el['readyState'])) || loaded) return;
+                el.onload = el['onreadystatechange'] = function (e) {
+                    if ((el['readyState'] && !/^c|loade/.test(el['readyState'])) || loaded) return;
                     el.onload = el['onreadystatechange'] = null;
                     loaded = 1;
                     $delegate._broadcast('ocLazyLoad.fileLoaded', path);
                     deferred.resolve(el);
                 };
-                el.onerror = function() {
+                el.onerror = function () {
                     filesCache.remove(path);
-                    deferred.reject(new Error(`Unable to load ${ path }`));
+                    deferred.reject(new Error(`Unable to load ${path}`));
                 };
                 el.async = params.serie ? 0 : 1;
 
                 var insertBeforeElem = anchor.lastChild;
-                if(params.insertBefore) {
+                if (params.insertBefore) {
                     var element = angular.element(angular.isDefined(window.jQuery) ? params.insertBefore : document.querySelector(params.insertBefore));
-                    if(element && element.length > 0) {
+                    if (element && element.length > 0) {
                         insertBeforeElem = element[0];
                     }
                 }
@@ -84,8 +86,8 @@
                  - Android < 4.4 (default mobile browser)
                  - Safari < 6    (desktop browser)
                  */
-                if(type == 'css') {
-                    if(!uaCssChecked) {
+                if (type == 'css') {
+                    if (!uaCssChecked) {
                         var ua = $window.navigator.userAgent.toLowerCase();
 
                         if (ua.indexOf('phantomjs/1.9') > -1) {
@@ -107,15 +109,15 @@
                         }
                     }
 
-                    if(useCssLoadPatch) {
+                    if (useCssLoadPatch) {
                         var tries = 1000; // * 20 = 20000 miliseconds
                         var interval = $interval(() => {
                             try {
                                 el.sheet.cssRules;
                                 $interval.cancel(interval);
                                 el.onload();
-                            } catch(e) {
-                                if(--tries <= 0) {
+                            } catch (e) {
+                                if (--tries <= 0) {
                                     el.onerror();
                                 }
                             }
@@ -127,7 +129,7 @@
             };
 
             return $delegate;
-        })
+        });
     });
 
 })(angular);

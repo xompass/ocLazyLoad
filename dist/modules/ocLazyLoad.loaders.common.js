@@ -44,11 +44,13 @@
                         el = $window.document.createElement('link');
                         el.type = 'text/css';
                         el.rel = 'stylesheet';
+                        el.crossOrigin = 'anonymous';
                         el.href = params.cache === false ? cacheBuster(path) : path;
                         break;
                     case 'js':
                         el = $window.document.createElement('script');
                         el.src = params.cache === false ? cacheBuster(path) : path;
+                        el.crossOrigin = 'anonymous';
                         break;
                     default:
                         filesCache.remove(path);
